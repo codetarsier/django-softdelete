@@ -68,6 +68,8 @@ class SoftDeleteQuerySet(query.QuerySet):
             cs.undelete()
         logging.debug("FINISHED UNDELETING %s", self)
 
+    def hard_delete(self):
+        return super().delete()
 
 class SoftDeleteManager(models.Manager):
 
@@ -136,6 +138,9 @@ class SoftDeleteManager(models.Manager):
         if not issubclass(qs.__class__, SoftDeleteQuerySet):
             qs.__class__ = SoftDeleteQuerySet
         return qs
+
+    def hard_delete(self):
+        return self.get_query_set().hard_delete()
 
 
 class SoftDeleteObject(models.Model):
@@ -264,6 +269,9 @@ class SoftDeleteObject(models.Model):
         cs.undelete(using)
         logging.debug('FINISHED UNDELETING RELATED %s', self)
 
+    def hard_delete(self):
+        return super().delete()
+
     def save(self, **kwargs):
         super(SoftDeleteObject, self).save(**kwargs)
         if self.__dirty:
@@ -272,6 +280,7 @@ class SoftDeleteObject(models.Model):
                 self.undelete()
             else:
                 self.delete()
+
 
 class ChangeSet(models.Model):
     created_date = models.DateTimeField(default=timezone.now)
