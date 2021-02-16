@@ -182,12 +182,15 @@ class SoftDeleteObject(models.Model):
             return
 
         try:
+            # softdelete fails to delete 1-1 with changeset.
             if related.one_to_one:
                 try:
                     getattr(self, rel).delete(changeset=changeset)
                 except:
+                    # delete only related object and skip changeset
                     getattr(self, rel).delete()
             else:
+                # if not 1-1 then try all delete with changeset
                 getattr(self, rel).all().delete(changeset=changeset)
         except:
             try:
